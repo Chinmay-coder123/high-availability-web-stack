@@ -1,0 +1,89 @@
+
+services:
+
+  # First FastAPI application container
+  app1:
+    build: ./app
+    environment:
+      INSTANCE_NAME: app-1
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: webstack
+      DB_USER: webuser
+      DB_PASSWORD: devpassword123
+    restart: unless-stopped
+    networks:
+      - frontend-net
+      - backend-net
+
+  # Second FastAPI application container
+  app2:
+    build: ./app
+    environment:
+      INSTANCE_NAME: app-2
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: webstack
+      DB_USER: webuser
+      DB_PASSWORD: devpassword123
+      
+    restart: unless-stopped
+    networks:
+      - frontend-net
+      - backend-net
+
+  # Nginx reverse proxy and load balancer
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app1
+      - app2
+    restart: unless-stopped
+    networks:
+      - frontend-net
+
+  # PostgreSQL database
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: webstack
+      MYSQL_USER: webuser
+      MYSQL_PASSWORD: devpassword123
+      MYSQL_ROOT_PASSWORD: rootpassword123
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - backend-net
+  
+  backup:
+    build: ./backup
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: webstack
+      DB_USER: webuser
+      DB_PASSWORD: devpassword123
+    volumes:
+      - backup_data:/backups
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - backend-net
+
+# Define the Docker network
+networks:
+  frontend-net:
+    driver: bridge
+  backend-net:
+    driver: bridge
+
+# Define persistent database storage
+volumes:
+  mysql_data:
+  backup_data:
