@@ -1,0 +1,21 @@
+name: FastAPI Docker Build
+
+on:
+  push:
+    branches:
+      - main
+  
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-app:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      
+      - name: Build FastAPI Docker image
+        run: docker build -t fastapi-app:ci ./app
