@@ -1,10 +1,9 @@
-name: FastAPI Docker Build
+name: CI
 
 on:
   push:
     branches:
       - main
-  
   pull_request:
     branches:
       - main
@@ -16,9 +15,88 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      
+
       - name: Build FastAPI Docker image
         run: docker build -t fastapi-app:ci ./app
 
       - name: Validate Docker Compose configuration
         run: docker compose config --quiet
+
+  test-app:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: testrootpassword
+          MYSQL_DATABASE: api_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -ptestrootpassword"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_NAME: api_test
+      DB_USER: root
+      DB_PASSWORD: testrootpassword
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r app/requirements.txt
+
+      - name: Create test database table
+        working-directory: app
+        run: |
+          python - <<'PY'
+          import os
+          import time
+          import mysql.connector
+
+          connection = None
+
+          for attempt in range(30):
+              try:
+                  connection = mysql.connector.connect(
+                      host=os.environ["DB_HOST"],
+                      port=int(os.environ["DB_PORT"]),
+                      database=os.environ["DB_NAME"],
+                      user=os.environ["DB_USER"],
+                      password=os.environ["DB_PASSWORD"],
+                  )
+                  break
+              except mysql.connector.Error:
+                  if attempt == 29:
+                      raise
+                  time.sleep(2)
+
+          cursor = connection.cursor()
+          cursor.execute("""
+              CREATE TABLE IF NOT EXISTS items (
+                  id INT NOT NULL AUTO_INCREMENT,
+                  name VARCHAR(100) NOT NULL,
+                  price DECIMAL(10,2) NOT NULL,
+                  PRIMARY KEY (id)
+              )
+          """)
+          connection.commit()
+          cursor.close()
+          connection.close()
+          PY
+
+      - name: Run 5 automated tests
+        working-directory: app
+        run: python -m pytest -v
