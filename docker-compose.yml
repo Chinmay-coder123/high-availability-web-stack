@@ -76,6 +76,17 @@ services:
     networks:
       - backend-net
 
+  db-test:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: testrootpassword
+      MYSQL_DATABASE: restore_test
+    volumes:
+      - backup_data:/backups:ro
+      - mysql_test_data:/var/lib/mysql
+    networks:
+      - backend-net
+
 # Define the Docker network
 networks:
   frontend-net:
@@ -87,3 +98,4 @@ networks:
 volumes:
   mysql_data:
   backup_data:
+  mysql_test_data:
