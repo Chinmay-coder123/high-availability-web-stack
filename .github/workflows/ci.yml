@@ -19,3 +19,6 @@ jobs:
       
       - name: Build FastAPI Docker image
         run: docker build -t fastapi-app:ci ./app
+
+      - name: Validate Docker Compose configuration
+      - run: docker compose config --quiet
