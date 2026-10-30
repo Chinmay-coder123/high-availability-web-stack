@@ -163,13 +163,29 @@ export default function App() {
         />
 
         <div className="page-body">
-          {/* Feature 1: System Health Monitoring */}
-          <HealthMonitor
-            healthData={healthData}
-            isLoading={isHealthLoading}
-            onRefresh={fetchHealth}
-            lastChecked={lastUpdated}
-          />
+
+  {/* Deployment test banner */}
+  <div
+    style={{
+      padding: '8px 12px',
+      marginBottom: '12px',
+      borderRadius: '6px',
+      backgroundColor: '#e6f7ed',
+      color: '#166534',
+      fontSize: '13px',
+      fontWeight: '600',
+    }}
+  >
+    Deployment Test: Version 2 — CI/CD Verified
+  </div>
+
+  {/* Feature 1: System Health Monitoring */}
+  <HealthMonitor
+    healthData={healthData}
+    isLoading={isHealthLoading}
+    onRefresh={fetchHealth}
+    lastChecked={lastUpdated}
+  />
 
           {/* Features 2 & 3: Database Explorer & Add Item Form */}
           <section id="database" className="grid-2-col">
