@@ -1,5 +1,11 @@
-
 services:
+
+  # React Frontend Dashboard
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    networks:
+      - frontend-net
 
   # First FastAPI application container
   app1:
@@ -11,6 +17,8 @@ services:
       DB_NAME: webstack
       DB_USER: webuser
       DB_PASSWORD: devpassword123
+    volumes:
+      - backup_data:/backups:ro
     restart: unless-stopped
     networks:
       - frontend-net
@@ -26,7 +34,8 @@ services:
       DB_NAME: webstack
       DB_USER: webuser
       DB_PASSWORD: devpassword123
-      
+    volumes:
+      - backup_data:/backups:ro
     restart: unless-stopped
     networks:
       - frontend-net
@@ -42,6 +51,7 @@ services:
     depends_on:
       - app1
       - app2
+      - frontend
     restart: unless-stopped
     networks:
       - frontend-net
@@ -107,6 +117,8 @@ services:
       DB_NAME: api_test
       DB_USER: root
       DB_PASSWORD: apitestroot123
+    volumes:
+      - backup_data:/backups:ro
     command: ["sleep", "infinity"]
     networks:
       - backend-net
