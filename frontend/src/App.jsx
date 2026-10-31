@@ -176,7 +176,7 @@ export default function App() {
       fontWeight: '600',
     }}
   >
-    Deployment Test: Version 2 — CI/CD Verified
+    Deployment Test: Version 3 — CI/CD Verified
   </div>
 
   {/* Feature 1: System Health Monitoring */}
